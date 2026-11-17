@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             id="defs-timers"
+             targetNamespace="http://example.com/bpmn">
+  <process id="timers-process" isExecutable="true">
+    <startEvent id="start"/>
+    <intermediateCatchEvent id="wait5m">
+      <timerEventDefinition>
+        <timeDuration>PT5M</timeDuration>
+      </timerEventDefinition>
+    </intermediateCatchEvent>
+    <userTask id="review"/>
+    <boundaryEvent id="reviewTimeout" attachedToRef="review" cancelActivity="true">
+      <timerEventDefinition>
+        <timeDuration>PT1H</timeDuration>
+      </timerEventDefinition>
+    </boundaryEvent>
+    <serviceTask id="escalate"/>
+    <endEvent id="end"/>
+
+    <sequenceFlow id="f1" sourceRef="start" targetRef="wait5m"/>
+    <sequenceFlow id="f2" sourceRef="wait5m" targetRef="review"/>
+    <sequenceFlow id="f3" sourceRef="review" targetRef="end"/>
+    <sequenceFlow id="f4" sourceRef="reviewTimeout" targetRef="escalate"/>
+    <sequenceFlow id="f5" sourceRef="escalate" targetRef="end"/>
+  </process>
+</definitions>

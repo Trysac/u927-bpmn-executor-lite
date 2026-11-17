@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             id="defs-parallel"
+             targetNamespace="http://example.com/bpmn">
+  <process id="parallel-process" isExecutable="true">
+    <startEvent id="start"/>
+    <parallelGateway id="fork"/>
+    <userTask id="a"/>
+    <userTask id="b"/>
+    <parallelGateway id="join"/>
+    <endEvent id="end"/>
+
+    <sequenceFlow id="f1" sourceRef="start" targetRef="fork"/>
+    <sequenceFlow id="f2" sourceRef="fork" targetRef="a"/>
+    <sequenceFlow id="f3" sourceRef="fork" targetRef="b"/>
+    <sequenceFlow id="f4" sourceRef="a" targetRef="join"/>
+    <sequenceFlow id="f5" sourceRef="b" targetRef="join"/>
+    <sequenceFlow id="f6" sourceRef="join" targetRef="end"/>
+  </process>
+</definitions>
