@@ -1,25 +1,17 @@
-# Security notes
+# Security & Threat Model
 
-## Threat model
+## Threat Model
 
-`io.github.trysac:bpmn-executor-lite` is a pure library without I/O. The main risks are:
+`bpmn-executor-lite` parses untrusted BPMN 2.0 XML documents and evaluates embedded condition expressions.
 
-- **Supply chain**: a compromised dependency, Maven plugin or CI action. Mitigation: standard
-  library only, every plugin and dependency pinned to an exact version in `pom.xml`, OSV-Scanner
-  over every artifact Maven resolves and over `pom.xml` in the gates, Dependabot weekly updates,
-  actions pinned by commit SHA, minimal workflow permissions.
-- **Leaked secrets**: tokens committed by mistake. Mitigation: `gitleaks` runs in the local gates
-  and in CI; `.env` files are git-ignored.
-- **Insecure code**: command injection, unsafe deserialization, disabled TLS verification.
-  Mitigation: Error Prone and javac `-Xlint:all` with warnings as errors, and the factory's Semgrep
-  rules (`.semgrep/factory-rules.yml`, `nosemgrep` ignored); fix the code instead of silencing it.
-- **Untrusted input**: callers may pass hostile strings. Mitigation: validate input and throw
-  explicit, documented exceptions; never deserialize untrusted bytes with `ObjectInputStream`;
-  never start a shell with untrusted data.
+### Defended
 
-## Publishing
+- **XML External Entities (XXE)**: DTDs and external entities are disabled at the parser level.
+- **Resource Exhaustion**: XML input limited to 1 MiB, nesting depth to 64, and execution steps to 10,000 per call.
+- **Insecure Code Execution**: Expression language is limited to simple logic (no method calls, no reflection, no property access).
+- **Sensitive Data Leakage**: Audit log only stores metadata (element IDs, timestamps, kinds), never process variables.
 
-Releases are git tags; publishing to Maven Central needs a namespace account and a signing key,
-which are never stored in the repository.
+### Not Defended
 
-To report a vulnerability, see [SECURITY.md](../SECURITY.md).
+- Maliciously constructed XML payloads that fit within the size/depth limits but cause high computational overhead (e.g., complex condition evaluations).
+- The provided `ServiceHandler` implementations; they run in the same JVM and have access to the instance's state.

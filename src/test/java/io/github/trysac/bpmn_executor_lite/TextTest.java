@@ -8,7 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** Tests of the public API. */
+/** Tests of internal text normalization helper. */
 class TextTest {
 
   @ParameterizedTest

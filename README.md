@@ -1,49 +1,49 @@
 # bpmn-executor-lite
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/Trysac/u927-bpmn-executor-lite/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u927-bpmn-executor-lite/actions/workflows/ci.yml)
+Token-based executor for a strict BPMN 2.0 subset with tasks, exclusive and parallel gateways and timer events, an injected clock and a replayable audit log.
 
-Token-based executor for a strict BPMN 2.0 subset with tasks, exclusive and parallel gateways and timer events, an injected clock and a replayable audit log
+## Why bpmn-executor-lite?
 
-## Problem
+Teams that model approvals and order flows in BPMN either embed a full engine such as Camunda or Flowable, with a database and a large runtime, or rewrite the diagram as code that drifts from it. Many processes only use tasks, gateways and timers. This library reads BPMN 2.0 XML in that subset, executes it with token semantics and an injected clock, and refuses any element it does not implement instead of ignoring it.
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+## Installation
 
-## Install
-
-Maven coordinates `io.github.trysac:bpmn-executor-lite`. Until it is published to Maven Central, build
-it from a release tag with `mvn install`, then declare:
+Add the dependency to your `pom.xml`:
 
 ```xml
 <dependency>
   <groupId>io.github.trysac</groupId>
   <artifactId>bpmn-executor-lite</artifactId>
-  <version>0.1.0</version>
+  <version>1.0.0</version>
 </dependency>
 ```
-
-Requires Java 21 or newer. No dependencies outside the standard library.
 
 ## Usage
 
 ```java
-import io.github.trysac.bpmn_executor_lite.Text;
-
-// normalize trims surrounding whitespace and lower-cases the text.
-String name = Text.normalize("  Hello World "); // "hello world"
-
-// Blank input is rejected explicitly instead of returning an empty string.
-Text.normalize("   "); // throws BlankInputException ("input is blank")
+ProcessDefinition def = BpmnParser.parse(xmlBytes);
+Engine engine = new Engine(Instant::now, Map.of(
+    "check", (id, vars) -> Map.of(),
+    "ship", (id, vars) -> Map.of("shipped", true)
+), event -> {});
+Instance instance = engine.start(def, Map.of("amount", 150));
+engine.complete(instance, "approve", Map.of("approved", true));
 ```
 
-## Documentation
+## API Summary
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+- `BpmnParser.parse(byte[] xml)`: Parses XML up to 1 MiB. Throws `BpmnException` for malformed XML, `too_deep` (nesting > 64), `input_too_large`, or `unsupported_element`.
+- `Engine(Clock, Map<String, ServiceHandler>, Consumer<AuditEvent>)`: The execution engine.
+- `Engine.start(ProcessDefinition, Map<String, Object>)`: Starts a process instance.
+- `Engine.complete(Instance, String, Map<String, Object>)`: Completes a `userTask`. Throws `unknown_task` if invalid.
+- `Engine.tick()`: Advances timers.
+- `Engine.replay(ProcessDefinition, List<AuditEvent>)`: Reconstructs state from an audit log.
+- `AuditEvent` and `Instance`: Immutable record representations of state and audit logs.
 
-## License
+## Why not Camunda or Flowable?
 
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+This library is an embeddable, database-free executor whose refusal of unsupported elements is explicit. It is designed for simple process automation where full engine features (persistence, UI, etc.) are unnecessary complexity.
+
+## Security
+
+See [docs/SECURITY.md](docs/SECURITY.md).

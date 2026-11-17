@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Added token-based BPMN 2.0 parser (`BpmnParser`), execution and replay engine (`Engine`), condition evaluator, timer support with injected `Clock`, and typed `BpmnException` error codes.
 - Initial project structure from the factory utility template.

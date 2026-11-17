@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             id="defs-order"
+             targetNamespace="http://example.com/bpmn">
+  <process id="order-process" isExecutable="true">
+    <documentation>Order approval and fulfillment process</documentation>
+    <startEvent id="start"/>
+    <serviceTask id="check" name="Check Order"/>
+    <exclusiveGateway id="gw" default="flow-to-ship"/>
+    <userTask id="approve" name="Approve Order"/>
+    <serviceTask id="ship" name="Ship Order"/>
+    <endEvent id="end"/>
+
+    <sequenceFlow id="flow-start-check" sourceRef="start" targetRef="check"/>
+    <sequenceFlow id="flow-check-gw" sourceRef="check" targetRef="gw"/>
+    <sequenceFlow id="flow-to-approve" sourceRef="gw" targetRef="approve">
+      <conditionExpression>amount &gt; 100</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="flow-to-ship" sourceRef="gw" targetRef="ship"/>
+    <sequenceFlow id="flow-approve-ship" sourceRef="approve" targetRef="ship"/>
+    <sequenceFlow id="flow-ship-end" sourceRef="ship" targetRef="end"/>
+  </process>
+  <bpmndi:BPMNDiagram id="diag-1">
+    <bpmndi:BPMNPlane id="plane-1" bpmnElement="order-process"/>
+  </bpmndi:BPMNDiagram>
+</definitions>
